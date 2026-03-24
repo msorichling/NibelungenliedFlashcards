@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nibelungenlied - Flashcards & Wissenstest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles für den 3D Flip-Effekt der Karten */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .card-front {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #1e293b;
+            transform: rotateY(180deg);
+            border: 2px solid #fbbf24;
+        }
+        
+        /* Smooth Fade In */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Checkbox Custom Styles für bessere Sichtbarkeit */
+        input[type="checkbox"] {
+            accent-color: #f59e0b;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+
+    <!-- Header & Navigation -->
+    <header class="bg-slate-800 shadow-lg border-b border-amber-500/30 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">Das Nibelungenlied</h1>
+            </div>
+            
+            <div id="timer-container" class="flex items-center gap-6 opacity-50 transition-opacity duration-500">
+                <div class="flex flex-col items-center bg-slate-900 px-4 py-2 rounded-lg border border-slate-700">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Zeit</span>
+                    <span id="timer-display" class="text-2xl font-mono text-amber-400 font-bold">00:00</span>
+                </div>
+                <!-- Der Stop-Button im Header wird erst beim Start eingeblendet -->
+                <button id="btn-stop-timer" class="hidden bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-red-900/50 transform transition hover:scale-105 active:scale-95 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
+                    Zeit stoppen, Korrektur erfolgt!
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        
+        <!-- VIEW 0: ONBOARDING / ANWEISUNGEN -->
+        <section id="view-onboarding" class="fade-in max-w-3xl mx-auto">
+            <div class="bg-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700">
+                <h2 class="text-3xl font-bold text-amber-400 mb-6 flex items-center gap-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Bevor es losgeht...
+                </h2>
+                
+                <div class="bg-amber-900/30 border-l-4 border-amber-500 p-4 rounded-r-lg mb-8 text-amber-100">
+                    <p class="font-bold mb-1">Wichtige Regel für diesen Check:</p>
+                    <p>Bitte sei absolut ehrlich zu dir selbst! Betrüge nicht, indem du die Lösung vorher anschaust. Klicke eine Karte erst dann um, wenn du deine Antwort <strong>vollständig</strong> aufgeschrieben hast. Nur so ist es eine echte Vorbereitung auf die Kurzarbeit!</p>
+                </div>
+
+                <p class="text-lg text-slate-300 mb-6">Bitte bestätige folgende Schritte, um den Test zu starten:</p>
+
+                <div class="space-y-4 mb-8">
+                    <label class="flex items-start gap-4 cursor-pointer p-4 bg-slate-900/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition">
+                        <input type="checkbox" class="w-6 h-6 shrink-0 mt-1 rounded chk-onboarding cursor-pointer">
+                        <span class="text-lg select-none">Ich habe das Papier vor mir, ebenfalls einen Stift zum Schreiben.</span>
+                    </label>
+                    <label class="flex items-start gap-4 cursor-pointer p-4 bg-slate-900/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition">
+                        <input type="checkbox" class="w-6 h-6 shrink-0 mt-1 rounded chk-onboarding cursor-pointer">
+                        <span class="text-lg select-none">Ich habe die Überschrift <strong>"Das Nibelungenlied - letzter Check vor der Kurzarbeit"</strong> und das heutige Datum auf dem Papier notiert.</span>
+                    </label>
+                    <label class="flex items-start gap-4 cursor-pointer p-4 bg-slate-900/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition">
+                        <input type="checkbox" class="w-6 h-6 shrink-0 mt-1 rounded chk-onboarding cursor-pointer">
+                        <span class="text-lg select-none">Ich bin bereit für die erste Frage!</span>
+                    </label>
+                </div>
+
+                <button id="btn-start-quiz" disabled class="w-full bg-slate-700 text-slate-400 font-bold py-5 rounded-xl text-xl cursor-not-allowed transition duration-300">
+                    Alle Punkte abhaken, um zu starten
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 1: FLASHCARDS (Sequenziell) -->
+        <section id="view-flashcards" class="hidden fade-in max-w-4xl mx-auto">
+            <div class="text-center mb-8 bg-slate-800/50 py-4 rounded-lg border border-slate-700">
+                <p class="text-lg text-amber-300 font-medium">Schreibe deine Antwort auf. Klicke dann auf die Karte, um die Lösung zu sehen.</p>
+            </div>
+            
+            <div id="single-card-container" class="flex flex-col items-center">
+                <!-- Aktuelle Karte wird hier eingefügt -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: ASSESSMENT (KORREKTUR) -->
+        <section id="view-assessment" class="hidden fade-in">
+            <div class="bg-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl border border-slate-700 max-w-5xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-amber-400 mb-3">Selbstkorrektur</h2>
+                    <p class="text-slate-300">Die Zeit wurde gestoppt: <span id="final-time" class="font-bold text-white"></span>. Gehe nun deine Notizen durch. Markiere bei jeder Frage ehrlich, wie deine Antwort war.</p>
+                </div>
+
+                <form id="assessment-form" class="space-y-8">
+                    <div id="assessment-list" class="space-y-6">
+                        <!-- Assessment items injected here -->
+                    </div>
+
+                    <div class="pt-8 border-t border-slate-700 flex flex-col items-center gap-4 sticky bottom-0 bg-slate-800 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-b-2xl z-10">
+                        <div class="text-xl">Du hast aktuell <span id="live-score" class="font-bold text-amber-400 text-2xl">0</span> von <span class="total-questions font-bold"></span> Fragen richtig.</div>
+                        <button type="button" id="btn-submit-assessment" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold py-4 px-10 rounded-xl shadow-lg shadow-amber-900/50 transform transition hover:scale-105 active:scale-95 text-lg">
+                            Ergebnis auswerten & Feedback erhalten
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- VIEW 3: RESULTS & FEEDBACK -->
+        <section id="view-results" class="hidden fade-in">
+            <div class="bg-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl border border-slate-700 max-w-4xl mx-auto text-center">
+                
+                <h2 class="text-3xl font-bold text-white mb-8">Deine Auswertung</h2>
+                
+                <div class="flex flex-col md:flex-row justify-center items-center gap-10 mb-10">
+                    <!-- Medal Image / SVG -->
+                    <div id="medal-container" class="w-48 h-48 flex items-center justify-center rounded-full bg-slate-900 border-4 shadow-2xl relative">
+                        <!-- SVG injected via JS -->
+                    </div>
+
+                    <div class="text-left space-y-4">
+                        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                            <p class="text-sm text-slate-400 uppercase tracking-wider">Ergebnis</p>
+                            <p class="text-4xl font-black text-amber-400"><span id="result-percent">0</span>%</p>
+                            <p class="text-slate-300 mt-1"><span id="result-points" class="font-bold">0</span> von <span class="total-questions"></span> Punkten</p>
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                            <p class="text-sm text-slate-400 uppercase tracking-wider">Benötigte Zeit</p>
+                            <p id="result-time" class="text-2xl font-mono text-white">00:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-700/50 rounded-xl p-6 mb-8 text-left border border-slate-600">
+                    <h3 class="text-xl font-bold text-amber-300 mb-3 flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Lehrer-Feedback
+                    </h3>
+                    <p id="feedback-general" class="text-lg text-white mb-4"></p>
+                    <div id="feedback-specific" class="p-4 bg-slate-800 rounded-lg text-slate-300 border-l-4 border-amber-500">
+                        <!-- Specific feedback injected here -->
+                    </div>
+                </div>
+
+                <button id="btn-restart" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 px-8 rounded-lg transition">
+                    Zurück zum Start
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- DATA ---
+        const quizData = [
+            {
+                category: "I. Fakten",
+                questions: [
+                    { id: "q1", q: "Wann entstand das Nibelungenlied in etwa und wie wurden solche Geschichten damals oft weitergegeben?", a: "Es entstand ca. um das Jahr 1200. Die Geschichten wurden zuvor meist mündlich durch fahrende Sänger und Spielleute von Generation zu Generation weitergegeben." },
+                    { id: "q2", q: "Aus welcher Sprache stammt der Begriff „Epos“ und was bedeutet er?", a: "Der Begriff stammt aus dem Altgriechischen („épos“) und bedeutet übersetzt „Wort“, „Erzählung“ oder „Gedicht“ (insbesondere ein langes, erzählendes Heldengedicht)." }
+                ]
+            },
+            {
+                category: "II. Figurenwissen und Konstellationen",
+                questions: [
+                    { id: "q3", q: "Aus welcher Stadt stammt Prinz Siegfried und wie heißen seine Eltern?", a: "Er stammt aus Xanten (am Niederrhein). Seine Eltern heißen König Siegmund und Königin Sieglind." },
+                    { id: "q4", q: "Nenne die drei Burgundenkönige. In welchem familiären Verhältnis stehen sie zu Kriemhild?", a: "Die Könige heißen Gunther, Gernot und Giselher. Sie sind die leiblichen Brüder von Kriemhild." },
+                    { id: "q5", q: "Wer ist Hagen von Tronje und welche Funktion erfüllt er für die Burgundenkönige?", a: "Hagen ist ein entfernter Verwandter und der wichtigste Vasall (Gefolgsmann). Er fungiert als stärkster Krieger, Beschützer und engster politischer Berater der Könige." }
+                ]
+            },
+            {
+                category: "III. Handlung Teil 1: Aufstieg, List und Betrug",
+                questions: [
+                    { id: "q6", q: "Wie erlangte Siegfried seine fast vollständige Unverwundbarkeit und wie kam er in den Besitz des Nibelungenschatzes?", a: "Unverwundbarkeit: Durch ein Bad im Blut eines erlegten Drachens (Fafnir). Schatz: Er besiegte die Nibelungenkönige (Schilbung und Nibelung) sowie den Zwerg Alberich und nahm den Hort an sich." },
+                    { id: "q7", q: "Welchen folgenschweren Handel schlägt König Gunther Siegfried vor, als dieser um Kriemhilds Hand anhält?", a: "Siegfried darf Kriemhild nur heiraten, wenn er Gunther vorher dabei hilft, die unbesiegbare isländische Königin Brünhild im Kampf zu besiegen und für Gunther als Ehefrau zu gewinnen." },
+                    { id: "q8", q: "Mit welchem magischen Gegenstand trickst Siegfried die starke Königin Brünhild im Wettkampf aus?", a: "Mit einer magischen Tarnkappe (die ihn nicht nur unsichtbar macht, sondern ihm auch die Kraft von zwölf Männern verleiht)." }
+                ]
+            },
+            {
+                category: "IV. Handlung Teil 2: Streit, Mord und Nachspiel",
+                questions: [
+                    { id: "q9", q: "Welches Geheimnis plaudert Kriemhild beim großen Streit vor dem Dom unabsichtlich aus?", a: "Sie verrät voller Wut, dass in Wahrheit Siegfried (und nicht Gunther) Brünhild besiegt hat, und beweist dies, indem sie Brünhilds Ring und Gürtel präsentiert, die Siegfried ihr heimlich abgenommen hatte." },
+                    { id: "q10", q: "Was war Siegfrieds einzige Schwachstelle und wie genau war sie damals beim Bad im Drachenblut entstanden?", a: "Eine kleine Stelle zwischen seinen Schulterblättern. Dort war während des Bads im Drachenblut ein Lindenblatt hingefallen, sodass diese Hautpartie nicht vom Blut benetzt und somit nicht unverwundbar wurde." },
+                    { id: "q11", q: "Mit welchem Trick entlockt Hagen von Tronje der ahnungslosen Kriemhild das Geheimnis über Siegfrieds Schwachstelle?", a: "Er gibt heuchlerisch vor, Siegfried im bevorstehenden Krieg besonders beschützen zu wollen. Er bittet Kriemhild, die verwundbare Stelle mit einem Kreuz auf Siegfrieds Gewand zu markieren." },
+                    { id: "q12", q: "Warum versteckt Hagen am Ende den wertvollen Nibelungenschatz?", a: "Er versenkt ihn im Rhein, damit Kriemhild den Reichtum nicht nutzen kann, um Söldner anzuwerben und eine Armee gegen ihn und die Burgunden aufzustellen, um Rache zu üben." }
+                ]
+            },
+            {
+                category: "V. Charakterentwicklung und Werte",
+                questions: [
+                    { id: "q13", q: "Beschreibe die Entwicklung von Königin Brünhild: Wie verändert sich ihr Charakter, nachdem sie von dem Betrug erfährt?", a: "Sie wandelt sich von einer eigenständigen, extrem starken und stolzen Herrscherin zu einer zutiefst gekränkten, gedemütigten und hasserfüllten Frau, die weinend Rache und den Tod Siegfrieds fordert." },
+                    { id: "q14", q: "Nenne mindestens drei negative Charaktereigenschaften von Siegfried (vor allem zu Beginn).", a: "Er ist oft überheblich/arrogant, sehr ungestüm (will anfangs das Burgundenreich gewaltsam übernehmen), respektlos, naiv und er verhält sich betrügerisch (beim Wettkampf gegen Brünhild)." },
+                    { id: "q15", q: "Was versteht man unter der „Nibelungentreue“ und warum wird sie heute als gefährlich eingestuft?", a: "Es bezeichnet eine absolute, blinde Treue und Gefolgschaft bis in den sicheren Tod (wie bei den Burgunden im Etzel-Palast), selbst wenn der Anführer Unrecht begeht. Gefährlich, weil sie eigenes moralisches Denken und Gewissen ausschaltet (wurde z.B. im Nationalsozialismus missbraucht)." }
+                ]
+            }
+        ];
+
+        // Flatten data for sequential display
+        let flatQuestions = [];
+        quizData.forEach(cat => {
+            cat.questions.forEach(q => {
+                flatQuestions.push({ ...q, category: cat.category });
+            });
+        });
+        const totalQuestionsCount = flatQuestions.length;
+
+        // --- STATE ---
+        let timerInterval;
+        let secondsElapsed = 0;
+        let isTimerRunning = false;
+        let currentQIndex = 0;
+        let userAnswers = {}; // { q1: 'correct' | 'wrong' | 'empty' }
+
+        // --- DOM ELEMENTS ---
+        const viewOnboarding = document.getElementById('view-onboarding');
+        const viewFlashcards = document.getElementById('view-flashcards');
+        const viewAssessment = document.getElementById('view-assessment');
+        const viewResults = document.getElementById('view-results');
+        
+        const onboardingCheckboxes = document.querySelectorAll('.chk-onboarding');
+        const btnStartQuiz = document.getElementById('btn-start-quiz');
+        
+        const singleCardContainer = document.getElementById('single-card-container');
+        const assessmentList = document.getElementById('assessment-list');
+        
+        const timerContainer = document.getElementById('timer-container');
+        const timerDisplay = document.getElementById('timer-display');
+        const btnStopTimer = document.getElementById('btn-stop-timer');
+        
+        const finalTimeDisplay = document.getElementById('final-time');
+        const liveScoreDisplay = document.getElementById('live-score');
+        const btnSubmitAssessment = document.getElementById('btn-submit-assessment');
+        const btnRestart = document.getElementById('btn-restart');
+        
+        document.querySelectorAll('.total-questions').forEach(el => el.textContent = totalQuestionsCount);
+
+        // --- ONBOARDING LOGIC ---
+        onboardingCheckboxes.forEach(chk => {
+            chk.addEventListener('change', () => {
+                const allChecked = Array.from(onboardingCheckboxes).every(c => c.checked);
+                if (allChecked) {
+                    btnStartQuiz.disabled = false;
+                    btnStartQuiz.classList.replace('bg-slate-700', 'bg-gradient-to-r');
+                    btnStartQuiz.classList.add('from-amber-500', 'to-orange-600', 'text-white', 'hover:scale-105', 'shadow-lg', 'shadow-amber-900/50');
+                    btnStartQuiz.classList.remove('text-slate-400', 'cursor-not-allowed');
+                    btnStartQuiz.textContent = "Test starten!";
+                } else {
+                    btnStartQuiz.disabled = true;
+                    btnStartQuiz.classList.replace('bg-gradient-to-r', 'bg-slate-700');
+                    btnStartQuiz.classList.remove('from-amber-500', 'to-orange-600', 'text-white', 'hover:scale-105', 'shadow-lg', 'shadow-amber-900/50');
+                    btnStartQuiz.classList.add('text-slate-400', 'cursor-not-allowed');
+                    btnStartQuiz.textContent = "Alle Punkte abhaken, um zu starten";
+                }
+            });
+        });
+
+        btnStartQuiz.addEventListener('click', () => {
+            viewOnboarding.classList.add('hidden');
+            viewFlashcards.classList.remove('hidden');
+            
+            // UI Timer aktivieren
+            timerContainer.classList.remove('opacity-50');
+            btnStopTimer.classList.remove('hidden');
+            
+            startTimer();
+            renderCurrentCard();
+            window.scrollTo(0, 0);
+        });
+
+        // --- TIMER LOGIC ---
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timerDisplay.textContent = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            timerContainer.classList.add('opacity-50', 'pointer-events-none');
+        }
+
+        // --- RENDER SEQUENTIAL FLASHCARDS ---
+        function renderCurrentCard() {
+            singleCardContainer.innerHTML = '';
+            
+            const qData = flatQuestions[currentQIndex];
+            
+            // Container für Überschrift und Karte
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full max-w-2xl fade-in";
+
+            // Kategorie Überschrift
+            const catTitle = document.createElement('h2');
+            catTitle.className = "text-2xl sm:text-3xl font-bold text-amber-500 mb-8 border-b border-slate-700 pb-3 text-center";
+            catTitle.textContent = qData.category;
+            wrapper.appendChild(catTitle);
+
+            // Card wrapper
+            const card = document.createElement('div');
+            card.className = "perspective-1000 w-full h-80 sm:h-72 cursor-pointer group mb-10";
+            
+            // Card inner (3D container)
+            const cardInner = document.createElement('div');
+            cardInner.className = "relative w-full h-full transform-style-3d rounded-2xl shadow-2xl";
+            
+            // Front
+            const cardFront = document.createElement('div');
+            cardFront.className = "absolute w-full h-full backface-hidden card-front rounded-2xl p-8 flex flex-col justify-center items-center text-center group-hover:border-amber-500/50 transition-colors";
+            cardFront.innerHTML = `
+                <div class="absolute top-4 left-4 text-slate-500 text-sm font-bold uppercase tracking-widest">Frage ${currentQIndex + 1}</div>
+                <svg class="w-10 h-10 text-amber-500/50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-lg sm:text-xl font-medium leading-relaxed">${qData.q}</p>
+                <div class="absolute bottom-4 right-4 text-amber-500/60 text-xs flex items-center gap-1 animate-pulse">
+                    Klicken zum Umdrehen <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                </div>
+            `;
+
+            // Back
+            const cardBack = document.createElement('div');
+            cardBack.className = "absolute w-full h-full backface-hidden card-back rounded-2xl p-8 flex flex-col justify-center items-center text-center overflow-y-auto";
+            cardBack.innerHTML = `
+                <div class="absolute top-4 right-4 text-amber-700/60 text-sm font-bold uppercase tracking-widest">Lösung</div>
+                <p class="text-base sm:text-lg font-medium leading-relaxed">${qData.a}</p>
+            `;
+
+            cardInner.appendChild(cardFront);
+            cardInner.appendChild(cardBack);
+            card.appendChild(cardInner);
+            wrapper.appendChild(card);
+            
+            // Navigation Button (initially hidden)
+            const navDiv = document.createElement('div');
+            navDiv.className = "flex flex-col items-center gap-3";
+            
+            const progressText = document.createElement('p');
+            progressText.className = "text-slate-400 font-mono mb-2";
+            progressText.textContent = `Fortschritt: ${currentQIndex + 1} / ${totalQuestionsCount}`;
+            navDiv.appendChild(progressText);
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = "opacity-0 pointer-events-none transform translate-y-4 transition-all duration-500 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-10 rounded-xl shadow-lg"; 
+            
+            if (currentQIndex < totalQuestionsCount - 1) {
+                nextBtn.innerHTML = `Nächste Frage &rarr;`;
+                nextBtn.addEventListener('click', () => {
+                    currentQIndex++;
+                    renderCurrentCard();
+                });
+            } else {
+                nextBtn.innerHTML = `Test beenden & zur Korrektur`;
+                nextBtn.classList.replace('bg-slate-700', 'bg-red-600');
+                nextBtn.classList.replace('hover:bg-slate-600', 'hover:bg-red-500');
+                nextBtn.addEventListener('click', () => {
+                    document.getElementById('btn-stop-timer').click();
+                });
+            }
+
+            // Reveal next button on flip
+            let flipped = false;
+            card.addEventListener('click', () => {
+                cardInner.classList.toggle('rotate-y-180');
+                if(!flipped) {
+                    flipped = true;
+                    nextBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                }
+            });
+
+            navDiv.appendChild(nextBtn);
+            wrapper.appendChild(navDiv);
+            singleCardContainer.appendChild(wrapper);
+        }
+
+        // --- TRANSITION TO ASSESSMENT ---
+        btnStopTimer.addEventListener('click', () => {
+            stopTimer();
+            finalTimeDisplay.textContent = formatTime(secondsElapsed);
+            viewFlashcards.classList.add('hidden');
+            viewAssessment.classList.remove('hidden');
+            renderAssessmentList();
+            window.scrollTo(0, 0);
+        });
+
+        // --- RENDER ASSESSMENT FORM ---
+        function renderAssessmentList() {
+            assessmentList.innerHTML = '';
+            userAnswers = {}; // Reset
+
+            quizData.forEach((categoryBlock) => {
+                const section = document.createElement('div');
+                section.className = "mb-10";
+                
+                const catTitle = document.createElement('h3');
+                catTitle.className = "text-xl font-bold text-amber-200 mb-4 bg-slate-700/50 py-2 px-4 rounded-lg border-l-4 border-amber-500";
+                catTitle.textContent = categoryBlock.category;
+                section.appendChild(catTitle);
+
+                categoryBlock.questions.forEach((q) => {
+                    const row = document.createElement('div');
+                    row.className = "flex flex-col lg:flex-row gap-6 justify-between items-start bg-slate-900 p-5 rounded-xl border border-slate-700 mb-4 hover:border-slate-500 transition-colors";
+                    
+                    const textContainer = document.createElement('div');
+                    textContainer.className = "flex-1 space-y-2";
+                    textContainer.innerHTML = `
+                        <p class="text-sm text-slate-400"><strong>Frage:</strong> ${q.q}</p>
+                        <p class="text-base text-slate-100"><strong>Musterlösung:</strong> ${q.a}</p>
+                    `;
+
+                    // Die 3 Aktions-Buttons
+                    const actions = document.createElement('div');
+                    actions.className = "flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0 mt-2 lg:mt-0";
+                    
+                    const btnRight = document.createElement('button');
+                    btnRight.type = "button";
+                    btnRight.className = "flex-1 lg:flex-none px-4 py-2 rounded border border-green-500/50 text-green-400 hover:bg-green-500/10 transition whitespace-nowrap";
+                    btnRight.innerHTML = `✓ Richtig`;
+                    
+                    const btnWrong = document.createElement('button');
+                    btnWrong.type = "button";
+                    btnWrong.className = "flex-1 lg:flex-none px-4 py-2 rounded border border-red-500/50 text-red-400 hover:bg-red-500/10 transition whitespace-nowrap";
+                    btnWrong.innerHTML = `✗ Falsch`;
+
+                    const btnEmpty = document.createElement('button');
+                    btnEmpty.type = "button";
+                    btnEmpty.className = "flex-1 lg:flex-none px-4 py-2 rounded border border-slate-500/50 text-slate-400 hover:bg-slate-500/10 transition whitespace-nowrap";
+                    btnEmpty.innerHTML = `∅ Nichts eingetragen`;
+
+                    // Toggle Logic
+                    const updateUI = () => {
+                        const val = userAnswers[q.id];
+                        
+                        // Reset all
+                        [btnRight, btnWrong, btnEmpty].forEach(b => {
+                            b.classList.remove('bg-green-500', 'bg-red-500', 'bg-slate-500', 'text-white');
+                        });
+                        btnRight.classList.add('text-green-400', 'border-green-500/50');
+                        btnWrong.classList.add('text-red-400', 'border-red-500/50');
+                        btnEmpty.classList.add('text-slate-400', 'border-slate-500/50');
+
+                        // Set active
+                        if (val === 'correct') {
+                            btnRight.classList.add('bg-green-500', 'text-white');
+                            btnRight.classList.remove('text-green-400', 'border-green-500/50');
+                        } else if (val === 'wrong') {
+                            btnWrong.classList.add('bg-red-500', 'text-white');
+                            btnWrong.classList.remove('text-red-400', 'border-red-500/50');
+                        } else if (val === 'empty') {
+                            btnEmpty.classList.add('bg-slate-500', 'text-white');
+                            btnEmpty.classList.remove('text-slate-400', 'border-slate-500/50');
+                        }
+                        updateLiveScore();
+                    };
+
+                    btnRight.addEventListener('click', () => { userAnswers[q.id] = 'correct'; updateUI(); });
+                    btnWrong.addEventListener('click', () => { userAnswers[q.id] = 'wrong'; updateUI(); });
+                    btnEmpty.addEventListener('click', () => { userAnswers[q.id] = 'empty'; updateUI(); });
+
+                    actions.appendChild(btnRight);
+                    actions.appendChild(btnWrong);
+                    actions.appendChild(btnEmpty);
+                    
+                    row.appendChild(textContainer);
+                    row.appendChild(actions);
+                    section.appendChild(row);
+                });
+                assessmentList.appendChild(section);
+            });
+        }
+
+        function updateLiveScore() {
+            const correctCount = Object.values(userAnswers).filter(v => v === 'correct').length;
+            liveScoreDisplay.textContent = correctCount;
+        }
+
+        // --- SUBMIT ASSESSMENT & CALCULATE RESULTS ---
+        btnSubmitAssessment.addEventListener('click', () => {
+            // Check if all answered
+            if (Object.keys(userAnswers).length < totalQuestionsCount) {
+                alert("Bitte wähle bei JEDER Frage eine der drei Optionen (Richtig, Falsch, Nichts eingetragen), bevor du fortfährst.");
+                return;
+            }
+
+            viewAssessment.classList.add('hidden');
+            viewResults.classList.remove('hidden');
+            generateFeedback();
+            window.scrollTo(0, 0);
+        });
+
+        function generateFeedback() {
+            let totalCorrect = 0;
+            const categoryScores = [];
+
+            // Calculate scores per category
+            quizData.forEach(cat => {
+                let catCorrect = 0;
+                cat.questions.forEach(q => {
+                    if (userAnswers[q.id] === 'correct') {
+                        catCorrect++;
+                        totalCorrect++;
+                    }
+                });
+                const catPercent = (catCorrect / cat.questions.length) * 100;
+                categoryScores.push({ name: cat.category, percent: catPercent, correct: catCorrect, total: cat.questions.length });
+            });
+
+            // Total Percentage
+            const totalPercent = Math.round((totalCorrect / totalQuestionsCount) * 100);
+            
+            // Update Result UI
+            document.getElementById('result-percent').textContent = totalPercent;
+            document.getElementById('result-points').textContent = totalCorrect;
+            document.getElementById('result-time').textContent = formatTime(secondsElapsed);
+
+            // Determine Medal and Colors
+            let medalColor, medalText, svgPath;
+            const medalContainer = document.getElementById('medal-container');
+            
+            if (totalPercent >= 90) {
+                medalColor = "border-yellow-400 bg-yellow-500/20 text-yellow-400 shadow-yellow-500/50";
+                medalText = "Gold";
+                svgPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>`;
+            } else if (totalPercent >= 70) {
+                medalColor = "border-gray-300 bg-gray-400/20 text-gray-300 shadow-gray-400/50";
+                medalText = "Silber";
+                svgPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>`;
+            } else if (totalPercent >= 50) {
+                medalColor = "border-amber-700 bg-amber-800/20 text-amber-600 shadow-amber-800/50";
+                medalText = "Bronze";
+                svgPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>`;
+            } else {
+                medalColor = "border-slate-500 bg-slate-600/20 text-slate-400 shadow-none";
+                medalText = "Teilnehmer";
+                svgPath = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>`;
+            }
+
+            medalContainer.className = `w-48 h-48 flex flex-col items-center justify-center rounded-full border-8 ${medalColor}`;
+            medalContainer.innerHTML = `
+                <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">${svgPath}</svg>
+                <span class="font-bold text-xl uppercase tracking-widest">${medalText}</span>
+            `;
+
+            // General Feedback Text
+            const generalFeedbackEl = document.getElementById('feedback-general');
+            if (totalPercent >= 90) {
+                generalFeedbackEl.innerHTML = "<strong>Hervorragend!</strong> Du bist ein wahrer Meister des Nibelungenlieds. Dein Wissen über die Figuren, die komplexe Handlung und die Hintergründe ist exzellent.";
+            } else if (totalPercent >= 70) {
+                generalFeedbackEl.innerHTML = "<strong>Gute Leistung!</strong> Du hast die wichtigsten Ereignisse und Intrigen am Hof der Burgunden gut verstanden. Ein paar Details kannst du noch vertiefen.";
+            } else if (totalPercent >= 50) {
+                generalFeedbackEl.innerHTML = "<strong>Ordentlich!</strong> Die Grundzüge der Geschichte sind dir bekannt. Bei einigen Hintergründen und Handlungsdetails gibt es aber noch Luft nach oben.";
+            } else {
+                generalFeedbackEl.innerHTML = "<strong>Da geht noch was!</strong> Das Nibelungenlied ist kompliziert, und es scheint, als müsstest du dir die Geschichte von Siegfried, Kriemhild und Hagen noch einmal in Ruhe durchlesen.";
+            }
+
+            // Specific Feedback Text 
+            const specificFeedbackEl = document.getElementById('feedback-specific');
+            let feedbackHTML = `<ul class="space-y-3">`;
+            
+            // Sort categories by score to find strengths and weaknesses
+            const sortedCats = [...categoryScores].sort((a, b) => b.percent - a.percent);
+            
+            const bestCat = sortedCats[0];
+            const worstCat = sortedCats[sortedCats.length - 1];
+
+            if (bestCat.percent > 0) {
+                feedbackHTML += `<li>✅ Deine absolute Stärke ist der Bereich <strong>"${bestCat.name}"</strong> (${Math.round(bestCat.percent)}% richtig). Super!</li>`;
+            }
+            
+            if (worstCat.percent < 100) {
+                feedbackHTML += `<li>🔍 Nachholbedarf gibt es noch beim Thema <strong>"${worstCat.name}"</strong> (${Math.round(worstCat.percent)}% richtig). Schau dir deine Notizen dazu am besten noch einmal an.</li>`;
+            }
+
+            // Count empty answers
+            const emptyAnswersCount = Object.values(userAnswers).filter(v => v === 'empty').length;
+            if (emptyAnswersCount > 0) {
+                feedbackHTML += `<li class="text-slate-400">📝 Du hast bei ${emptyAnswersCount} Frage(n) "Nichts eingetragen". Das zeigt ehrliche Lücken auf, die du bis zur Kurzarbeit noch gezielt schließen kannst!</li>`;
+            }
+
+            // Hint for Character dev
+            const charCat = categoryScores.find(c => c.name.includes("Charakterentwicklung"));
+            if (charCat && charCat.percent <= 50) {
+                feedbackHTML += `<li class="mt-4 pt-4 border-t border-amber-500/30">💡 <em>Tipp:</em> Achte besonders auf die Motive der Figuren. Warum handeln sie so? Die sogenannte "Nibelungentreue" und Brünhilds gekränkter Stolz sind der Schlüssel zum Untergang der Burgunden.</li>`;
+            }
+
+            feedbackHTML += `</ul>`;
+            specificFeedbackEl.innerHTML = feedbackHTML;
+        }
+
+        // --- RESTART ---
+        btnRestart.addEventListener('click', () => {
+            // Reset Data
+            secondsElapsed = 0;
+            userAnswers = {};
+            currentQIndex = 0;
+            
+            // Reset UI
+            timerDisplay.textContent = "00:00";
+            document.getElementById('timer-container').classList.add('opacity-50', 'pointer-events-none');
+            btnStopTimer.classList.add('hidden');
+            
+            onboardingCheckboxes.forEach(chk => chk.checked = false);
+            btnStartQuiz.disabled = true;
+            btnStartQuiz.classList.replace('bg-gradient-to-r', 'bg-slate-700');
+            btnStartQuiz.classList.remove('from-amber-500', 'to-orange-600', 'text-white', 'hover:scale-105', 'shadow-lg', 'shadow-amber-900/50');
+            btnStartQuiz.classList.add('text-slate-400', 'cursor-not-allowed');
+            btnStartQuiz.textContent = "Alle Punkte abhaken, um zu starten";
+
+            // Reset Views
+            viewResults.classList.add('hidden');
+            viewAssessment.classList.add('hidden');
+            viewFlashcards.classList.add('hidden');
+            viewOnboarding.classList.remove('hidden');
+            
+            window.scrollTo(0, 0);
+        });
+
+    </script>
+</body>
+</html>
